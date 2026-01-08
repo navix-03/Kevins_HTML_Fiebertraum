@@ -4,19 +4,21 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
-    <title>Stadtbäume in Lahr (UTM konvertiert)</title>
+    <title>Stadtbäume Lahr</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.7.5/proj4.js"></script>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/gokertanrisever/leaflet-ruler@master/src/leaflet-ruler.css">  
     <script src="https://cdn.jsdelivr.net/gh/gokertanrisever/leaflet-ruler@master/src/leaflet-ruler.js"></script>
 
     <style>
-        html, body { width: 100%; height: 100%; padding: 0; margin: 0; }
-        #mapid { width: 100%; height: 100%; }
+        html, body, #mapid { 
+            width: 100%; 
+            height: 100%; 
+            padding: 0; 
+            margin: 0; 
+        }
     </style>    
 </head>
 <body>
@@ -24,52 +26,62 @@
     <div id="mapid"></div>
 
     <script>
-        // 1. Definition des Koordinatensystems EPSG:25832 (UTM 32N)
-        proj4.defs("EPSG:25832", "+proj=utm +zone=32 +ellps=GRS80 +units=m +no_defs");
+        // 1. Karte initialisieren
+        var mymap = L.map('mapid').setView([48.34, 7.86], 14);
 
-        // 2. Karte initialisieren
-        var mymap = L.map('mapid').setView([48.34, 7.86], 13);
-
-        // 3. Basemaps
+        // 2. Basemap hinzufügen
         var osm = L.tileLayer('https://{s}.tile.openstreetmap.de/tiles/osmde/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap'
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         }).addTo(mymap);
 
-        var basemaps = { "OpenStreetMap DE": osm };
-        var legend = L.control.layers(basemaps, null, {collapsed: false}).addTo(mymap);
-
-        // 4. Styling & Popups
+        // 3. Styling für die Baum-Polygone
         function styleFunction(feature) {
-            return { fillColor: "#228B22", weight: 1, opacity: 1, color: 'white', fillOpacity: 0.7 };
+            return {
+                fillColor: "#2e7d32",
+                weight: 1.5,
+                opacity: 1,
+                color: 'white',
+                fillOpacity: 0.7
+            };
         }
 
+        // 4. Popup-Funktion
         function popUpFunction(feature, layer) {
             if (feature.properties && feature.properties.Class_name) {
-                layer.bindPopup("<b>Klassifikation: </b>" + feature.properties.Class_name);
+                layer.bindPopup("<b>Klassifikation:</b> " + feature.properties.Class_name);
             }
         }
 
-        // 5. GeoJSON laden und PROJIZIEREN
-        fetch('Baeume_Lahr.geojson')
-            .then(response => response.json())
+        // 5. Daten laden (Greift auf Baeume.geojson zu)
+        fetch('Baeume.geojson')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Datei 'Baeume.geojson' wurde nicht gefunden.");
+                }
+                return response.json();
+            })
             .then(data => {
                 var overlay_baeume = L.geoJSON(data, {
-                    // DIESER TEIL IST NEU: Er rechnet UTM in Lat/Lng um
-                    coordsToLatLng: function (coords) {
-                        var converted = proj4("EPSG:25832", "EPSG:4326", [coords[0], coords[1]]);
-                        return L.latLng(converted[1], converted[0]);
-                    },
                     style: styleFunction,
                     onEachFeature: popUpFunction
                 }).addTo(mymap);
 
-                legend.addOverlay(overlay_baeume, "Stadtbäume");
+                // Zoomt automatisch so, dass alle Bäume sichtbar sind
                 mymap.fitBounds(overlay_baeume.getBounds());
-            })
-            .catch(err => console.error("Fehler:", err));
 
+                // Layer-Steuerung hinzufügen
+                var overlays = { "Stadtbäume": overlay_baeume };
+                L.control.layers(null, overlays, {collapsed: false}).addTo(mymap);
+            })
+            .catch(err => {
+                console.error("Ladefehler:", err);
+                alert("Fehler beim Laden der GeoJSON: " + err.message);
+            });
+
+        // 6. Extras
         L.control.scale({metric: true, imperial: false}).addTo(mymap);
         L.control.ruler().addTo(mymap);
+
     </script>
 </body>
 </html>
