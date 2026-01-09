@@ -121,6 +121,24 @@ function popUpFunction(feature, layer) {
         L.control.scale({metric: true, imperial: false}).addTo(mymap);
         L.control.ruler().addTo(mymap);
 
+// 7. Legende (unten rechts - bleibt immer an)
+        var legend = L.control({position: 'bottomright'});
+
+        legend.onAdd = function (map) {
+            var div = L.DomUtil.create('div', 'info legend'),
+                categories = ['pot. Bäume', 'pot. Hecken und Büsche', 'pot. Veg'],
+                labels = ['Baum', 'Busch/Hecke', 'Wiese'];
+
+            div.innerHTML = '<strong>Legende</strong><br>';
+
+            for (var i = 0; i < categories.length; i++) {
+                div.innerHTML +=
+                    '<i style="background:' + getColor(categories[i]) + '"></i> ' +
+                    labels[i] + '<br>';
+            }
+            return div;
+        };
+        legend.addTo(mymap);
     </script>
 </body>
 </html>
