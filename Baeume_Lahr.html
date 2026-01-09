@@ -29,14 +29,17 @@
         // 1. Karte initialisieren
         var mymap = L.map('mapid').setView([48.34, 7.86], 14);
 
-        // 2. Basemap hinzufügen
+       // 2. Basemaps definieren
         var osm = L.tileLayer('https://{s}.tile.openstreetmap.de/tiles/osmde/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-			
-			var satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EBP, and the GIS User Community'
-});
-        }).addTo(mymap);
+        });
+
+        var satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EBP, and the GIS User Community'
+        });
+
+        // OSM als Standard-Hintergrund hinzufügen
+        osm.addTo(mymap);
 
         // 3. Styling für die Baum-Polygone
         function styleFunction(feature) {
@@ -73,9 +76,20 @@
                 // Zoomt automatisch so, dass alle Bäume sichtbar sind
                 mymap.fitBounds(overlay_baeume.getBounds());
 
-                // Layer-Steuerung hinzufügen
-                var overlays = { "Stadtbäume": overlay_baeume };
-                L.control.layers(null, overlays, {collapsed: false}).addTo(mymap);
+                // --- LAYER-STEUERUNG ---
+                // Hintergrundkarten (Radio-Buttons: nur eine wählbar)
+                var baseMaps = {
+                    "OpenStreetMap": osm,
+                    "Satellitenbild": satellite
+                };
+
+                // Overlays (Checkboxes: an/ausschaltbar)
+                var overlays = {
+                    "Stadtbäume": overlay_baeume
+                };
+
+                // Steuerung zur Karte hinzufügen
+                L.control.layers(baseMaps, overlays, {collapsed: false}).addTo(mymap);
             })
             .catch(err => {
                 console.error("Ladefehler:", err);
