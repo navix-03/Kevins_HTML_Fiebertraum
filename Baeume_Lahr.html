@@ -20,26 +20,24 @@
         margin: 0; 
     }
 
-    /* Der weiße Legenden-Kasten */
     .info.legend {
-        background: white;             /* Reinweißer Hintergrund */
-        padding: 12px;                 /* Abstand zum Rand im Kasten */
-        border: 2px solid #555;        /* Deutlicher grauer Rahmen */
-        border-radius: 8px;            /* Abgerundete Ecken */
-        line-height: 24px;             /* Zeilenabstand */
+        background: white;
+        padding: 12px;
+        border: 2px solid #555;
+        border-radius: 8px;
+        line-height: 24px;
         font-family: 'Segoe UI', Arial, sans-serif;
         font-size: 14px;
         color: #333;
-        box-shadow: 2px 2px 10px rgba(0,0,0,0.3); /* Schatten für Tiefenwirkung */
+        box-shadow: 2px 2px 10px rgba(0,0,0,0.3);
     }
 
-    /* Das Farbfeld in der Legende */
     .info.legend i {
         width: 20px;
         height: 20px;
         float: left;
-        margin-right: 10px;            /* Abstand zwischen Farbe und Text */
-        border: 1px solid #000;        /* Schwarzer Rand um das Farbfeld */
+        margin-right: 10px;
+        border: 1px solid #000;
         opacity: 0.8;
     }
 </style>    
@@ -52,87 +50,73 @@
         // 1. Karte initialisieren
         var mymap = L.map('mapid').setView([48.34, 7.86], 14);
 
-       // 2. Basemaps definieren
+        // 2. Basemaps definieren
         var osm = L.tileLayer('https://{s}.tile.openstreetmap.de/tiles/osmde/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         });
 
         var satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EBP, and the GIS User Community'
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri'
         });
 
-        // OSM als Standard-Hintergrund hinzufügen
         osm.addTo(mymap);
 
-        // 3. Styling & Popups
-
-// Diese Funktion gibt die Farbe passend zur Klasse zurück
-function getColor(d) {
-    switch (d) {
-        case 'pot. Bäume':
-            return '#00441b'; // Sehr dunkles Grün
-        case 'pot. Hecken und Büsche':
-            return '#238b45'; // Mittleres Grün
-        case 'pot. Veg':
-            return '#a1d99b'; // Hellgrün
-        default:
-            return '#bdbdbd'; // Grau, falls ein Name nicht passt
-    }
-}
-
-function styleFunction(feature) {
-    return { 
-        fillColor: getColor(feature.properties.Class_name), 
-        weight: 1,           // Etwas dünnere Linie für bessere Optik
-        opacity: 1, 
-        color: 'white',      // Weißer Rand hilft bei der Abgrenzung auf Satellitenbildern
-        fillOpacity: 1     // Etwas kräftiger, damit man die Farben gut erkennt
-    };
-}
-
-function popUpFunction(feature, layer) {
-    if (feature.properties && feature.properties.Class_name) {
-        layer.bindPopup("<b>Klasse:</b> " + feature.properties.Class_name);
-    }
-}
-
-       // 1. Das Namens-Mapping (wie zuvor)
-const namenMapping = {
-    "pot. Bäume": "Baum",
-    "pot. Hecken und Büsche": "Busch/Hecke",
-    "pot. Veg": "Wiese"
-};
-
-// 2. Die verbesserte Pop-up-Funktion
-function popUpFunction(feature, layer) {
-    layer.on('click', function(e) {
-        // Wir prüfen, ob das Lineal-Tool aktiv ist. 
-        // Das Tool fügt der Schaltfläche die Klasse 'leaflet-ruler-clicked' hinzu.
-        var rulerBtn = document.querySelector('.leaflet-ruler');
-        var isRulerActive = rulerBtn ? rulerBtn.classList.contains('leaflet-ruler-clicked') : false;
-
-        // Nur wenn das Lineal NICHT aktiv ist, öffnen wir das Pop-up
-        if (!isRulerActive) {
-            let technischerName = feature.properties.Class_name;
-            let anzeigeName = namenMapping[technischerName] || technischerName;
-
-            L.popup()
-                .setLatLng(e.latlng)
-                .setContent("<b>Klasse:</b> " + anzeigeName)
-                .openOn(mymap);
+        // 3. Styling
+        function getColor(d) {
+            switch (d) {
+                case 'pot. Bäume': return '#00441b';
+                case 'pot. Hecken und Büsche': return '#238b45';
+                case 'pot. Veg': return '#a1d99b';
+                default: return '#bdbdbd';
+            }
         }
-        
-        // Verhindert, dass der Klick "durchgereicht" wird, falls nötig
-        L.DomEvent.stopPropagation(e);
-    });
-}
 
-        // 5. Daten laden (Greift auf Baeume.geojson zu)
+        function styleFunction(feature) {
+            return { 
+                fillColor: getColor(feature.properties.Class_name), 
+                weight: 1, 
+                opacity: 1, 
+                color: 'white', 
+                fillOpacity: 0.8 // Etwas reduziert für bessere Sichtbarkeit beim Messen
+            };
+        }
+
+        // 4. Das Namens-Mapping
+        const namenMapping = {
+            "pot. Bäume": "Baum",
+            "pot. Hecken und Büsche": "Busch/Hecke",
+            "pot. Veg": "Wiese"
+        };
+
+        // 5. Die verbesserte Pop-up-Funktion (Fix für Ruler-Tool)
+        function popUpFunction(feature, layer) {
+            layer.on('click', function(e) {
+                var rulerBtn = document.querySelector('.leaflet-ruler');
+                var isRulerActive = rulerBtn ? rulerBtn.classList.contains('leaflet-ruler-clicked') : false;
+
+                // WICHTIG: Wenn das Lineal aktiv ist, brechen wir hier ab und lassen 
+                // den Klick zur Karte durch (kein stopPropagation!), damit der Messpunkt gesetzt wird.
+                if (isRulerActive) {
+                    return; 
+                }
+
+                // Wenn Lineal inaktiv: Zeige schönes Pop-up
+                let technischerName = feature.properties.Class_name;
+                let anzeigeName = namenMapping[technischerName] || technischerName;
+
+                L.popup()
+                    .setLatLng(e.latlng)
+                    .setContent("<b>Klasse:</b> " + anzeigeName)
+                    .openOn(mymap);
+                
+                L.DomEvent.stopPropagation(e);
+            });
+        }
+
+        // 6. Daten laden
         fetch('Baeume.geojson')
             .then(response => {
-                if (!response.ok) {
-                    throw new Error("Datei 'Baeume.geojson' wurde nicht gefunden.");
-                }
+                if (!response.ok) throw new Error("Datei 'Baeume.geojson' nicht gefunden.");
                 return response.json();
             })
             .then(data => {
@@ -141,34 +125,19 @@ function popUpFunction(feature, layer) {
                     onEachFeature: popUpFunction
                 }).addTo(mymap);
 
-                // Zoomt automatisch so, dass alle Bäume sichtbar sind
                 mymap.fitBounds(overlay_baeume.getBounds());
 
-                // --- LAYER-STEUERUNG ---
-                // Hintergrundkarten (Radio-Buttons: nur eine wählbar)
-                var baseMaps = {
-                    "OpenStreetMap": osm,
-                    "Satellit": satellite
-                };
-
-                // Overlays (Checkboxes: an/ausschaltbar)
-                var overlays = {
-                    "Vegetation": overlay_baeume
-                };
-
-                // Steuerung zur Karte hinzufügen
+                var baseMaps = { "OpenStreetMap": osm, "Satellit": satellite };
+                var overlays = { "Vegetation": overlay_baeume };
                 L.control.layers(baseMaps, overlays, {collapsed: false}).addTo(mymap);
             })
-            .catch(err => {
-                console.error("Ladefehler:", err);
-                alert("Fehler beim Laden der GeoJSON: " + err.message);
-            });
+            .catch(err => console.error("Ladefehler:", err));
 
-        // 6. Extras
+        // 7. Extras
         L.control.scale({metric: true, imperial: false}).addTo(mymap);
         L.control.ruler().addTo(mymap);
 
-// 7. Legende (unten rechts - bleibt immer an)
+        // 8. Legende mit deinem Namen
         var legend = L.control({position: 'bottomright'});
 
         legend.onAdd = function (map) {
@@ -183,6 +152,11 @@ function popUpFunction(feature, layer) {
                     '<i style="background:' + getColor(categories[i]) + '"></i> ' +
                     labels[i] + '<br>';
             }
+
+            // Dein Verweis am Ende der Legende
+            div.innerHTML += '<hr style="margin: 8px 0; border: 0; border-top: 1px solid #ccc;">';
+            div.innerHTML += '<div style="font-size: 11px; text-align: center; color: #666;">Erstellt von: <b>DEIN NAME</b></div>';
+
             return div;
         };
         legend.addTo(mymap);
