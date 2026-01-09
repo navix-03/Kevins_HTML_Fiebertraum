@@ -13,13 +13,36 @@
     <script src="https://cdn.jsdelivr.net/gh/gokertanrisever/leaflet-ruler@master/src/leaflet-ruler.js"></script>
 
     <style>
-        html, body, #mapid { 
-            width: 100%; 
-            height: 100%; 
-            padding: 0; 
-            margin: 0; 
-        }
-    </style>    
+    html, body, #mapid { 
+        width: 100%; 
+        height: 100%; 
+        padding: 0; 
+        margin: 0; 
+    }
+
+    /* Der weiße Legenden-Kasten */
+    .info.legend {
+        background: white;             /* Reinweißer Hintergrund */
+        padding: 12px;                 /* Abstand zum Rand im Kasten */
+        border: 2px solid #555;        /* Deutlicher grauer Rahmen */
+        border-radius: 8px;            /* Abgerundete Ecken */
+        line-height: 24px;             /* Zeilenabstand */
+        font-family: 'Segoe UI', Arial, sans-serif;
+        font-size: 14px;
+        color: #333;
+        box-shadow: 2px 2px 10px rgba(0,0,0,0.3); /* Schatten für Tiefenwirkung */
+    }
+
+    /* Das Farbfeld in der Legende */
+    .info.legend i {
+        width: 20px;
+        height: 20px;
+        float: left;
+        margin-right: 10px;            /* Abstand zwischen Farbe und Text */
+        border: 1px solid #000;        /* Schwarzer Rand um das Farbfeld */
+        opacity: 0.8;
+    }
+</style>    
 </head>
 <body>
 
