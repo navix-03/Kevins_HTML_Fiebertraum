@@ -86,22 +86,35 @@ function styleFunction(feature) {
         weight: 1,           // Etwas dünnere Linie für bessere Optik
         opacity: 1, 
         color: 'white',      // Weißer Rand hilft bei der Abgrenzung auf Satellitenbildern
-        fillOpacity: 0.8     // Etwas kräftiger, damit man die Farben gut erkennt
+        fillOpacity: 1     // Etwas kräftiger, damit man die Farben gut erkennt
     };
 }
 
 function popUpFunction(feature, layer) {
     if (feature.properties && feature.properties.Class_name) {
-        layer.bindPopup("<b>Klassifikation:</b> " + feature.properties.Class_name);
+        layer.bindPopup("<b>Klasse:</b> " + feature.properties.Class_name);
     }
 }
 
         // 4. Popup-Funktion
-        function popUpFunction(feature, layer) {
-            if (feature.properties && feature.properties.Class_name) {
-                layer.bindPopup("<b>Klassifikation:</b> " + feature.properties.Class_name);
-            }
-        }
+       // Hier definieren wir die "Übersetzung"
+const namenMapping = {
+    "pot. Bäume": "Baum",
+    "pot. Hecken und Büsche": "Busch/Hecke",
+    "pot. Veg": "Wiese"
+};
+
+function popUpFunction(feature, layer) {
+    if (feature.properties && feature.properties.Class_name) {
+        let technischerName = feature.properties.Class_name;
+        
+        // Wir schauen im Mapping nach. Wenn der Name nicht gefunden wird, 
+        // nehmen wir den Originalnamen als Rückfallebene.
+        let anzeigeName = namenMapping[technischerName] || technischerName;
+
+        layer.bindPopup("<b>Klasse:</b> " + anzeigeName);
+    }
+}
 
         // 5. Daten laden (Greift auf Baeume.geojson zu)
         fetch('Baeume.geojson')
