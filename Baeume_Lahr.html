@@ -96,24 +96,35 @@ function popUpFunction(feature, layer) {
     }
 }
 
-        // 4. Popup-Funktion
-       // Hier definieren wir die "Übersetzung"
+       // 1. Das Namens-Mapping (wie zuvor)
 const namenMapping = {
     "pot. Bäume": "Baum",
     "pot. Hecken und Büsche": "Busch/Hecke",
     "pot. Veg": "Wiese"
 };
 
+// 2. Die verbesserte Pop-up-Funktion
 function popUpFunction(feature, layer) {
-    if (feature.properties && feature.properties.Class_name) {
-        let technischerName = feature.properties.Class_name;
-        
-        // Wir schauen im Mapping nach. Wenn der Name nicht gefunden wird, 
-        // nehmen wir den Originalnamen als Rückfallebene.
-        let anzeigeName = namenMapping[technischerName] || technischerName;
+    layer.on('click', function(e) {
+        // Wir prüfen, ob das Lineal-Tool aktiv ist. 
+        // Das Tool fügt der Schaltfläche die Klasse 'leaflet-ruler-clicked' hinzu.
+        var rulerBtn = document.querySelector('.leaflet-ruler');
+        var isRulerActive = rulerBtn ? rulerBtn.classList.contains('leaflet-ruler-clicked') : false;
 
-        layer.bindPopup("<b>Klasse:</b> " + anzeigeName);
-    }
+        // Nur wenn das Lineal NICHT aktiv ist, öffnen wir das Pop-up
+        if (!isRulerActive) {
+            let technischerName = feature.properties.Class_name;
+            let anzeigeName = namenMapping[technischerName] || technischerName;
+
+            L.popup()
+                .setLatLng(e.latlng)
+                .setContent("<b>Klasse:</b> " + anzeigeName)
+                .openOn(mymap);
+        }
+        
+        // Verhindert, dass der Klick "durchgereicht" wird, falls nötig
+        L.DomEvent.stopPropagation(e);
+    });
 }
 
         // 5. Daten laden (Greift auf Baeume.geojson zu)
